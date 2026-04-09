@@ -1,4 +1,4 @@
-# English Study Tool
+# LiteEnglish Voice
 
 [中文文档](#中文文档) | [English Documentation](#english-documentation)
 
