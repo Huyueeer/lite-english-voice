@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>English Study Tool</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f9;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        textarea {
+            width: 100%;
+            height: 150px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+            box-sizing: border-box;
+            resize: vertical;
+            margin-bottom: 20px;
+        }
+        button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            color: #333;
+        }
+        .audio-btn {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            width: auto;
+            display: inline-block;
+        }
+        .audio-btn:hover {
+            background-color: #218838;
+        }
+        .instructions {
+            background-color: #e9ecef;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>English Study Tool</h1>
+    <div class="instructions">
+        <strong>Input Format:</strong><br>
+        word，meaning，context，sentence，translation<br>
+        <em>Example: mode，n. 模式/方法，切换状态，I need to switch to silent mode.，我需要切换到静音模式。</em>
+    </div>
+
+    <div style="margin-bottom: 20px;">
+        <label for="voiceSelect"><strong>Select Voice:</strong></label>
+        <select id="voiceSelect" style="padding: 5px; border-radius: 4px;">
+            <option value="">Loading voices...</option>
+        </select>
+    </div>
+
+    <textarea id="inputText" placeholder="Paste your text here..."></textarea>
+    <button onclick="parseText()">Parse Text</button>
+
+    <div id="resultsArea" style="display: none;">
+        <table>
+            <thead>
+                <tr>
+                    <th>单词 (Word)</th>
+                    <th>含义 (Meaning)</th>
+                    <th>场景 (Context)</th>
+                    <th>例句 (Sentence)</th>
+                    <th>例句翻译 (Translation)</th>
+                    <th>语音 (Audio)</th>
+                </tr>
+            </thead>
+            <tbody id="resultsTableBody">
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    let voices = [];
+
+    function populateVoiceList() {
+        if (typeof speechSynthesis === 'undefined') {
+            return;
+        }
+
+        voices = speechSynthesis.getVoices();
+        const voiceSelect = document.getElementById('voiceSelect');
+        voiceSelect.innerHTML = '';
+
+        // Filter for English voices (or all if preferred)
+        const enVoices = voices.filter(voice => voice.lang.startsWith('en-'));
+
+        if (enVoices.length === 0) {
+            voiceSelect.innerHTML = '<option value="">No English voices found</option>';
+            return;
+        }
+
+        enVoices.forEach((voice, i) => {
+            const option = document.createElement('option');
+            option.textContent = `${voice.name} (${voice.lang})`;
+
+            if (voice.default) {
+                option.textContent += ' -- DEFAULT';
+            }
+
+            option.value = i;
+            // set default selected index based on default property
+            if (voice.default) {
+                option.selected = true;
+            }
+            voiceSelect.appendChild(option);
+        });
+
+        // Ensure at least one is selected if none is default
+        if(enVoices.length > 0 && voiceSelect.selectedIndex === -1) {
+            voiceSelect.selectedIndex = 0;
+        }
+    }
+
+    if (typeof speechSynthesis !== 'undefined' && speechSynthesis.onvoiceschanged !== undefined) {
+        speechSynthesis.onvoiceschanged = populateVoiceList;
+    }
+
+    async function parseText() {
+        const text = document.getElementById('inputText').value;
+        if (!text.trim()) {
+            alert('Please enter some text.');
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/parse', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ text })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to parse text');
+            }
+
+            const data = await response.json();
+            displayResults(data);
+        } catch (error) {
+            console.error('Error:', error);
+            alert('An error occurred while parsing the text.');
+        }
+    }
+
+    function displayResults(data) {
+        const resultsArea = document.getElementById('resultsArea');
+        const tbody = document.getElementById('resultsTableBody');
+
+        tbody.innerHTML = ''; // Clear previous results
+
+        if (data.length === 0) {
+            alert('No valid lines found. Please check your format.');
+            resultsArea.style.display = 'none';
+            return;
+        }
+
+        data.forEach(item => {
+            const tr = document.createElement('tr');
+
+            tr.innerHTML = `
+                <td>${escapeHtml(item.word)}</td>
+                <td>${escapeHtml(item.meaning)}</td>
+                <td>${escapeHtml(item.context)}</td>
+                <td>${escapeHtml(item.sentence)}</td>
+                <td>${escapeHtml(item.translation)}</td>
+                <td>
+                    <button class="audio-btn" onclick="playAudio('${escapeHtml(item.sentence.replace(/'/g, "\\'"))}')">🔊 Play</button>
+                </td>
+            `;
+
+            tbody.appendChild(tr);
+        });
+
+        resultsArea.style.display = 'block';
+    }
+
+    function playAudio(text) {
+        if ('speechSynthesis' in window) {
+            // Cancel any ongoing speech
+            window.speechSynthesis.cancel();
+
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'en-US';
+
+            // get selected voice
+            const voiceSelect = document.getElementById('voiceSelect');
+            const selectedOption = voiceSelect.selectedOptions[0].getAttribute('data-name');
+            const selectedVoiceIndex = parseInt(voiceSelect.value);
+
+            const allVoices = window.speechSynthesis.getVoices();
+            const enVoices = allVoices.filter(voice => voice.lang.startsWith('en-'));
+            const selectedVoice = enVoices[selectedVoiceIndex];
+
+            if (selectedVoice) {
+                utterance.voice = selectedVoice;
+            } else {
+                // Optional fallback: try to find an English voice
+                const enVoice = allVoices.find(voice => voice.lang.startsWith('en-'));
+                if (enVoice) {
+                    utterance.voice = enVoice;
+                }
+            }
+
+            window.speechSynthesis.speak(utterance);
+        } else {
+            alert('Text-to-speech is not supported in your browser.');
+        }
+    }
+
+    // Initial population attempts
+    populateVoiceList();
+
+    // Basic HTML escaping to prevent XSS
+    function escapeHtml(unsafe) {
+        return (unsafe || '').toString()
+             .replace(/&/g, "&amp;")
+             .replace(/</g, "&lt;")
+             .replace(/>/g, "&gt;")
+             .replace(/"/g, "&quot;")
+             .replace(/'/g, "&#039;");
+    }
+</script>
+
+</body>
+</html>
