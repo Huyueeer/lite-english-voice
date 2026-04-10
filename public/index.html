@@ -85,11 +85,11 @@
             color: #555;
         }
         .github-links {
-            position: absolute;
-            top: 20px;
-            right: 20px;
             display: flex;
+            justify-content: flex-end;
             gap: 15px;
+            padding: 10px 20px;
+            margin-bottom: 10px;
         }
         .github-links a {
             color: #007bff;
@@ -105,8 +105,101 @@
             cursor: pointer;
             border-bottom: 1px dashed #007bff;
         }
-        .clickable-word:hover {
-            background-color: #e9ecef;
+        .main-layout {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+        }
+        .left-column {
+            flex: 2;
+            min-width: 0; /* Prevent flex item from overflowing */
+        }
+        .right-column {
+            flex: 1;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border: 1px solid #e9ecef;
+            display: none; /* Hidden until tasks are generated */
+        }
+        .task-header {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 5px;
+        }
+        .target-sentence {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            color: #0056b3;
+            font-weight: bold;
+            line-height: 1.4;
+        }
+        .mic-btn {
+            background-color: #dc3545;
+            color: white;
+            padding: 15px 20px;
+            border: none;
+            border-radius: 50px;
+            font-size: 18px;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 15px;
+            transition: background-color 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .mic-btn:hover {
+            background-color: #c82333;
+        }
+        .mic-btn.listening {
+            background-color: #ffc107;
+            color: #333;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        .score-display {
+            font-size: 2em;
+            text-align: center;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+        .score-high { color: #28a745; }
+        .score-med { color: #fd7e14; }
+        .score-low { color: #dc3545; }
+
+        .transcript-box {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            min-height: 60px;
+            border: 1px solid #ddd;
+            font-style: italic;
+            color: #555;
+        }
+        .feedback-msg {
+            text-align: center;
+            font-weight: bold;
+            margin-top: 10px;
+            min-height: 24px;
+        }
+        .task-complete {
+            text-align: center;
+            color: #28a745;
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-top: 20px;
+            display: none;
         }
     </style>
 </head>
@@ -117,44 +210,246 @@
     <a href="https://github.com/Huyueeer/lite-english-voice" target="_blank" rel="noopener noreferrer">⭐ Source Code</a>
 </div>
 
-<div class="container">
-    <h1>LiteEnglish Voice</h1>
-    <div class="instructions">
-        <strong>Input Format:</strong><br>
-        word，meaning，context，sentence，translation<br>
-        <em>Example: mode，n. 模式/方法，切换状态，I need to switch to silent mode.，我需要切换到静音模式。</em>
+<div class="main-layout">
+    <div class="left-column container">
+        <h1>LiteEnglish Voice</h1>
+        <div class="instructions">
+            <strong>Input Format:</strong><br>
+            word，meaning，context，sentence，translation<br>
+            <em>Example: mode，n. 模式/方法，切换状态，I need to switch to silent mode.，我需要切换到静音模式。</em>
+        </div>
+
+        <div style="margin-bottom: 20px;">
+            <label for="voiceSelect"><strong>Select Voice:</strong></label>
+            <select id="voiceSelect" style="padding: 5px; border-radius: 4px;">
+                <option value="">Loading voices...</option>
+            </select>
+        </div>
+
+        <textarea id="inputText" placeholder="Paste your text here..."></textarea>
+        <button onclick="parseText()">Parse Text</button>
+
+        <div id="resultsArea" style="display: none;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>单词 (Word)</th>
+                        <th>含义 (Meaning)</th>
+                        <th>场景 (Context)</th>
+                        <th>例句 (Sentence)</th>
+                        <th>例句翻译 (Translation)</th>
+                        <th>语音 (Audio)</th>
+                    </tr>
+                </thead>
+                <tbody id="resultsTableBody">
+                </tbody>
+            </table>
+        </div>
     </div>
 
-    <div style="margin-bottom: 20px;">
-        <label for="voiceSelect"><strong>Select Voice:</strong></label>
-        <select id="voiceSelect" style="padding: 5px; border-radius: 4px;">
-            <option value="">Loading voices...</option>
-        </select>
-    </div>
+    <div class="right-column container" id="spokenTaskArea">
+        <div class="task-header" id="taskProgress">Task 1 of 5</div>
 
-    <textarea id="inputText" placeholder="Paste your text here..."></textarea>
-    <button onclick="parseText()">Parse Text</button>
+        <div class="target-sentence" id="targetSentenceDisplay">
+            Loading task...
+        </div>
 
-    <div id="resultsArea" style="display: none;">
-        <table>
-            <thead>
-                <tr>
-                    <th>单词 (Word)</th>
-                    <th>含义 (Meaning)</th>
-                    <th>场景 (Context)</th>
-                    <th>例句 (Sentence)</th>
-                    <th>例句翻译 (Translation)</th>
-                    <th>语音 (Audio)</th>
-                </tr>
-            </thead>
-            <tbody id="resultsTableBody">
-            </tbody>
-        </table>
+        <button id="startMicBtn" class="mic-btn" onclick="toggleListening()">
+            🎤 Start Speaking
+        </button>
+
+        <div class="transcript-box" id="transcriptDisplay">
+            Your voice input will appear here...
+        </div>
+
+        <div class="score-display" id="scoreDisplay">
+            Score: <span id="scoreValue">--</span>/10
+        </div>
+
+        <div class="feedback-msg" id="feedbackMessage"></div>
+
+        <div class="task-complete" id="allTasksComplete">
+            🎉 All spoken tasks completed! 🎉
+        </div>
     </div>
 </div>
 
 <script>
     let voices = [];
+
+    // Spoken Task State
+    let speakingTasks = [];
+    let currentTaskIndex = 0;
+    let recognition = null;
+    let isListening = false;
+
+    // Initialize Web Speech API
+    function initSpeechRecognition() {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (SpeechRecognition) {
+            recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = 'en-US';
+
+            recognition.onstart = function() {
+                isListening = true;
+                const btn = document.getElementById('startMicBtn');
+                btn.innerHTML = '🛑 Stop Listening';
+                btn.classList.add('listening');
+                document.getElementById('transcriptDisplay').innerText = 'Listening...';
+                document.getElementById('feedbackMessage').innerText = '';
+            };
+
+            recognition.onresult = function(event) {
+                const transcript = event.results[0][0].transcript;
+                document.getElementById('transcriptDisplay').innerText = transcript;
+                evaluateSpokenTask(transcript);
+            };
+
+            recognition.onerror = function(event) {
+                console.error('Speech recognition error', event.error);
+                document.getElementById('transcriptDisplay').innerText = 'Error: ' + event.error;
+                resetListeningUI();
+            };
+
+            recognition.onend = function() {
+                resetListeningUI();
+            };
+        } else {
+            console.warn('Speech Recognition API not supported in this browser.');
+            document.getElementById('startMicBtn').disabled = true;
+            document.getElementById('startMicBtn').innerText = 'Not Supported';
+        }
+    }
+
+    function resetListeningUI() {
+        isListening = false;
+        const btn = document.getElementById('startMicBtn');
+        btn.innerHTML = '🎤 Start Speaking';
+        btn.classList.remove('listening');
+    }
+
+    function toggleListening() {
+        if (!recognition) return;
+        if (isListening) {
+            recognition.stop();
+        } else {
+            recognition.start();
+        }
+    }
+
+    // Levenshtein Distance for String Similarity
+    function getLevenshteinDistance(a, b) {
+        if (a.length === 0) return b.length;
+        if (b.length === 0) return a.length;
+
+        var matrix = [];
+
+        var i;
+        for (i = 0; i <= b.length; i++) {
+            matrix[i] = [i];
+        }
+
+        var j;
+        for (j = 0; j <= a.length; j++) {
+            matrix[0][j] = j;
+        }
+
+        for (i = 1; i <= b.length; i++) {
+            for (j = 1; j <= a.length; j++) {
+                if (b.charAt(i - 1) == a.charAt(j - 1)) {
+                    matrix[i][j] = matrix[i - 1][j - 1];
+                } else {
+                    matrix[i][j] = Math.min(matrix[i - 1][j - 1] + 1, // substitution
+                                            Math.min(matrix[i][j - 1] + 1, // insertion
+                                                     matrix[i - 1][j] + 1)); // deletion
+                }
+            }
+        }
+
+        return matrix[b.length][a.length];
+    }
+
+    function calculateSimilarityScore(target, spoken) {
+        // Clean strings: lowercase, remove punctuation, remove extra spaces
+        const cleanTarget = target.toLowerCase().replace(/[^\w\s\']/g, '').replace(/\s+/g, ' ').trim();
+        const cleanSpoken = spoken.toLowerCase().replace(/[^\w\s\']/g, '').replace(/\s+/g, ' ').trim();
+
+        if (!cleanTarget || !cleanSpoken) return 0;
+
+        const distance = getLevenshteinDistance(cleanTarget, cleanSpoken);
+        const maxLength = Math.max(cleanTarget.length, cleanSpoken.length);
+
+        const ratio = 1 - (distance / maxLength);
+        let score = Math.round(ratio * 10);
+        return score < 0 ? 0 : score;
+    }
+
+    function evaluateSpokenTask(transcript) {
+        if (currentTaskIndex >= speakingTasks.length) return;
+
+        const targetSentence = speakingTasks[currentTaskIndex];
+        const score = calculateSimilarityScore(targetSentence, transcript);
+
+        const scoreDisplay = document.getElementById('scoreValue');
+        scoreDisplay.innerText = score;
+
+        scoreDisplay.className = '';
+        if (score >= 8) scoreDisplay.classList.add('score-high');
+        else if (score >= 5) scoreDisplay.classList.add('score-med');
+        else scoreDisplay.classList.add('score-low');
+
+        const feedbackMsg = document.getElementById('feedbackMessage');
+
+        if (score >= 7) {
+            feedbackMsg.innerText = 'Good job! Next task...';
+            feedbackMsg.style.color = '#28a745';
+
+            setTimeout(() => {
+                currentTaskIndex++;
+                updateSpokenTaskUI();
+            }, 1500);
+        } else {
+            feedbackMsg.innerText = 'Keep trying!';
+            feedbackMsg.style.color = '#dc3545';
+        }
+    }
+
+    function initSpokenTasks(data) {
+        speakingTasks = data.map(item => item.sentence);
+        currentTaskIndex = 0;
+
+        document.getElementById('spokenTaskArea').style.display = 'block';
+        document.getElementById('allTasksComplete').style.display = 'none';
+        document.getElementById('startMicBtn').style.display = 'flex';
+        document.getElementById('transcriptDisplay').innerText = 'Your voice input will appear here...';
+        document.getElementById('scoreValue').innerText = '--';
+        document.getElementById('scoreValue').className = '';
+        document.getElementById('feedbackMessage').innerText = '';
+
+        updateSpokenTaskUI();
+        initSpeechRecognition();
+    }
+
+    function updateSpokenTaskUI() {
+        if (currentTaskIndex < speakingTasks.length) {
+            document.getElementById('taskProgress').innerText = `Task ${currentTaskIndex + 1} of ${speakingTasks.length}`;
+            document.getElementById('targetSentenceDisplay').innerText = speakingTasks[currentTaskIndex];
+            document.getElementById('transcriptDisplay').innerText = 'Your voice input will appear here...';
+            document.getElementById('scoreValue').innerText = '--';
+            document.getElementById('scoreValue').className = '';
+            document.getElementById('feedbackMessage').innerText = '';
+        } else {
+            document.getElementById('taskProgress').innerText = `Tasks Completed`;
+            document.getElementById('targetSentenceDisplay').innerText = '-';
+            document.getElementById('startMicBtn').style.display = 'none';
+            document.getElementById('transcriptDisplay').innerText = '';
+            document.getElementById('scoreValue').innerText = '-';
+            document.getElementById('feedbackMessage').innerText = '';
+            document.getElementById('allTasksComplete').style.display = 'block';
+        }
+    }
 
     function populateVoiceList() {
         if (typeof speechSynthesis === 'undefined') {
@@ -221,6 +516,7 @@
 
             const data = await response.json();
             displayResults(data);
+            initSpokenTasks(data);
         } catch (error) {
             console.error('Error:', error);
             alert('An error occurred while parsing the text.');
