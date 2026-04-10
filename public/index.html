@@ -204,20 +204,72 @@
         .task-settings {
             display: flex;
             justify-content: space-between;
-            align-items: center;
+            align-items: flex-start;
             margin-bottom: 20px;
             background: #f8f9fa;
             padding: 10px;
             border-radius: 4px;
             border: 1px solid #dee2e6;
+            flex-wrap: wrap;
+            gap: 15px;
         }
         .task-settings label {
             font-weight: bold;
             color: #495057;
             font-size: 0.9em;
         }
-        .task-settings select, .task-settings input[type="checkbox"] {
+        .task-settings input[type="checkbox"] {
             margin-left: 5px;
+        }
+        .difficulty-setting {
+            width: 100%;
+        }
+        .difficulty-container {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+        }
+        .difficulty-option {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            border: 3px solid transparent;
+            border-radius: 8px;
+            padding: 5px;
+            transition: all 0.2s ease-in-out;
+            width: 90px;
+        }
+        .difficulty-option img {
+            width: 100%;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 4px;
+            margin-bottom: 5px;
+        }
+        .difficulty-option span {
+            font-size: 12px;
+            text-align: center;
+            color: #555;
+            line-height: 1.2;
+        }
+        .difficulty-option:hover {
+            transform: scale(1.05);
+            background-color: #f1f3f5;
+        }
+        .difficulty-option.selected {
+            border-color: #007bff;
+            background-color: #e9ecef;
+            box-shadow: 0 0 8px rgba(0, 123, 255, 0.3);
+        }
+        .difficulty-option.selected span {
+            font-weight: bold;
+            color: #007bff;
+        }
+        .auto-next-setting {
+            width: 100%;
+            display: flex;
+            justify-content: flex-end;
         }
         .highest-score-display {
             font-size: 1em;
@@ -312,16 +364,28 @@
         <div class="task-header" id="taskProgress">Task 1 of 5</div>
 
         <div class="task-settings" id="taskSettings">
-            <label for="passingScoreSelect">难度 (Difficulty):
-                <select id="passingScoreSelect" style="padding: 3px; border-radius: 4px;">
-                    <option value="4">4分 - 撒撒水啦</option>
-                    <option value="7" selected>7分 - 及格线</option>
-                    <option value="10">10分 - 我很严肃</option>
-                </select>
-            </label>
-            <label for="autoNextToggle" style="display: flex; align-items: center; gap: 5px;">
-                <input type="checkbox" id="autoNextToggle" checked> 自动下一条
-            </label>
+            <div class="difficulty-setting">
+                <label>难度 (Difficulty):</label>
+                <div class="difficulty-container">
+                    <div class="difficulty-option" data-score="4" onclick="selectDifficulty(this)">
+                        <img src="/images/3.jpg" alt="4分">
+                        <span>4分 - 撒撒水啦</span>
+                    </div>
+                    <div class="difficulty-option selected" data-score="7" onclick="selectDifficulty(this)">
+                        <img src="/images/7.jpg" alt="7分">
+                        <span>7分 - 及格线</span>
+                    </div>
+                    <div class="difficulty-option" data-score="10" onclick="selectDifficulty(this)">
+                        <img src="/images/10.jpg" alt="10分">
+                        <span>10分 - 我很严肃</span>
+                    </div>
+                </div>
+            </div>
+            <div class="auto-next-setting">
+                <label for="autoNextToggle" style="display: flex; align-items: center; gap: 5px;">
+                    <input type="checkbox" id="autoNextToggle" checked> 自动下一条
+                </label>
+            </div>
         </div>
 
         <div id="activeTaskControls">
@@ -474,6 +538,13 @@
         return score < 0 ? 0 : score;
     }
 
+    function selectDifficulty(element) {
+        document.querySelectorAll('.difficulty-option').forEach(opt => {
+            opt.classList.remove('selected');
+        });
+        element.classList.add('selected');
+    }
+
     function evaluateSpokenTask(transcript) {
         if (currentTaskIndex >= speakingTasks.length) return;
 
@@ -498,8 +569,8 @@
         const feedbackMsg = document.getElementById('feedbackMessage');
 
         // Evaluate against dynamic passing score
-        const passingScoreSelect = document.getElementById('passingScoreSelect');
-        const passingScore = parseInt(passingScoreSelect.value, 10);
+        const selectedOption = document.querySelector('.difficulty-option.selected');
+        const passingScore = parseInt(selectedOption.getAttribute('data-score'), 10);
         const isAutoNext = document.getElementById('autoNextToggle').checked;
 
         if (score >= passingScore) {
@@ -591,7 +662,8 @@
         document.getElementById('taskSettings').style.display = 'none';
         document.getElementById('allTasksComplete').style.display = 'block';
 
-        const passingScore = parseInt(document.getElementById('passingScoreSelect').value, 10);
+        const selectedOption = document.querySelector('.difficulty-option.selected');
+        const passingScore = parseInt(selectedOption.getAttribute('data-score'), 10);
 
         let reportHtml = `<table class="report-table">
             <thead>
