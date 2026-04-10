@@ -201,6 +201,67 @@
             margin-top: 20px;
             display: none;
         }
+        .task-settings {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #dee2e6;
+        }
+        .task-settings label {
+            font-weight: bold;
+            color: #495057;
+            font-size: 0.9em;
+        }
+        .task-settings select, .task-settings input[type="checkbox"] {
+            margin-left: 5px;
+        }
+        .highest-score-display {
+            font-size: 1em;
+            color: #6c757d;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .nav-btn {
+            background-color: #6c757d;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            flex: 1;
+            font-size: 16px;
+        }
+        .nav-btn:hover {
+            background-color: #5a6268;
+        }
+        .nav-btn:disabled {
+            background-color: #ced4da;
+            cursor: not-allowed;
+        }
+        .nav-btn-next {
+            background-color: #007bff;
+        }
+        .nav-btn-next:hover {
+            background-color: #0056b3;
+        }
+        .report-table {
+            width: 100%;
+            margin-top: 20px;
+            font-size: 0.9em;
+        }
+        .report-table th, .report-table td {
+            padding: 8px;
+        }
     </style>
 </head>
 <body>
@@ -250,26 +311,51 @@
     <div class="right-column container" id="spokenTaskArea">
         <div class="task-header" id="taskProgress">Task 1 of 5</div>
 
-        <div class="target-sentence" id="targetSentenceDisplay">
-            Loading task...
+        <div class="task-settings" id="taskSettings">
+            <label for="passingScoreSelect">难度 (Difficulty):
+                <select id="passingScoreSelect" style="padding: 3px; border-radius: 4px;">
+                    <option value="4">4分 - 撒撒水啦</option>
+                    <option value="7" selected>7分 - 及格线</option>
+                    <option value="10">10分 - 我很严肃</option>
+                </select>
+            </label>
+            <label for="autoNextToggle" style="display: flex; align-items: center; gap: 5px;">
+                <input type="checkbox" id="autoNextToggle" checked> 自动下一条
+            </label>
         </div>
 
-        <button id="startMicBtn" class="mic-btn" onclick="toggleListening()">
-            🎤 Start Speaking
-        </button>
+        <div id="activeTaskControls">
+            <div class="target-sentence" id="targetSentenceDisplay">
+                Loading task...
+            </div>
 
-        <div class="transcript-box" id="transcriptDisplay">
-            Your voice input will appear here...
+            <button id="startMicBtn" class="mic-btn" onclick="toggleListening()">
+                🎤 Start Speaking
+            </button>
+
+            <div class="transcript-box" id="transcriptDisplay">
+                Your voice input will appear here...
+            </div>
+
+            <div class="score-display" id="scoreDisplay">
+                Score: <span id="scoreValue">--</span>/10
+            </div>
+
+            <div class="highest-score-display" id="highestScoreDisplay">
+                Highest Score: --
+            </div>
+
+            <div class="feedback-msg" id="feedbackMessage"></div>
+
+            <div class="nav-buttons">
+                <button class="nav-btn" id="prevBtn" onclick="prevTask()">⬅️ Previous</button>
+                <button class="nav-btn nav-btn-next" id="nextBtn" onclick="nextTask()">Next ➡️</button>
+            </div>
         </div>
-
-        <div class="score-display" id="scoreDisplay">
-            Score: <span id="scoreValue">--</span>/10
-        </div>
-
-        <div class="feedback-msg" id="feedbackMessage"></div>
 
         <div class="task-complete" id="allTasksComplete">
             🎉 All spoken tasks completed! 🎉
+            <div id="finalReportArea"></div>
         </div>
     </div>
 </div>
@@ -280,8 +366,10 @@
     // Spoken Task State
     let speakingTasks = [];
     let currentTaskIndex = 0;
+    let highestScores = [];
     let recognition = null;
     let isListening = false;
+    let autoNextTimeout = null;
 
     // Initialize Web Speech API
     function initSpeechRecognition() {
@@ -392,6 +480,11 @@
         const targetSentence = speakingTasks[currentTaskIndex];
         const score = calculateSimilarityScore(targetSentence, transcript);
 
+        // Update highest score logic
+        if (score > highestScores[currentTaskIndex]) {
+            highestScores[currentTaskIndex] = score;
+        }
+
         const scoreDisplay = document.getElementById('scoreValue');
         scoreDisplay.innerText = score;
 
@@ -400,33 +493,65 @@
         else if (score >= 5) scoreDisplay.classList.add('score-med');
         else scoreDisplay.classList.add('score-low');
 
+        document.getElementById('highestScoreDisplay').innerText = `Highest Score: ${highestScores[currentTaskIndex]}/10`;
+
         const feedbackMsg = document.getElementById('feedbackMessage');
 
-        if (score >= 7) {
-            feedbackMsg.innerText = 'Good job! Next task...';
+        // Evaluate against dynamic passing score
+        const passingScoreSelect = document.getElementById('passingScoreSelect');
+        const passingScore = parseInt(passingScoreSelect.value, 10);
+        const isAutoNext = document.getElementById('autoNextToggle').checked;
+
+        if (score >= passingScore) {
             feedbackMsg.style.color = '#28a745';
 
-            setTimeout(() => {
-                currentTaskIndex++;
-                updateSpokenTaskUI();
-            }, 1500);
+            if (isAutoNext) {
+                feedbackMsg.innerText = 'Good job! Auto-advancing...';
+
+                // Clear any existing timeout before setting a new one
+                if (autoNextTimeout) clearTimeout(autoNextTimeout);
+
+                autoNextTimeout = setTimeout(() => {
+                    nextTask();
+                }, 2000);
+            } else {
+                feedbackMsg.innerText = 'Passed! Click Next to continue.';
+            }
         } else {
             feedbackMsg.innerText = 'Keep trying!';
             feedbackMsg.style.color = '#dc3545';
         }
     }
 
+    function prevTask() {
+        if (autoNextTimeout) clearTimeout(autoNextTimeout);
+        if (currentTaskIndex > 0) {
+            currentTaskIndex--;
+            updateSpokenTaskUI();
+        }
+    }
+
+    function nextTask() {
+        if (autoNextTimeout) clearTimeout(autoNextTimeout);
+        if (currentTaskIndex < speakingTasks.length - 1) {
+            currentTaskIndex++;
+            updateSpokenTaskUI();
+        } else if (currentTaskIndex === speakingTasks.length - 1) {
+            showTaskReport();
+        }
+    }
+
     function initSpokenTasks(data) {
         speakingTasks = data.map(item => item.sentence);
         currentTaskIndex = 0;
+        highestScores = new Array(speakingTasks.length).fill(0);
+        if (autoNextTimeout) clearTimeout(autoNextTimeout);
 
         document.getElementById('spokenTaskArea').style.display = 'block';
         document.getElementById('allTasksComplete').style.display = 'none';
-        document.getElementById('startMicBtn').style.display = 'flex';
-        document.getElementById('transcriptDisplay').innerText = 'Your voice input will appear here...';
-        document.getElementById('scoreValue').innerText = '--';
-        document.getElementById('scoreValue').className = '';
-        document.getElementById('feedbackMessage').innerText = '';
+        document.getElementById('activeTaskControls').style.display = 'block';
+        document.getElementById('taskSettings').style.display = 'flex';
+        document.getElementById('finalReportArea').innerHTML = '';
 
         updateSpokenTaskUI();
         initSpeechRecognition();
@@ -440,15 +565,63 @@
             document.getElementById('scoreValue').innerText = '--';
             document.getElementById('scoreValue').className = '';
             document.getElementById('feedbackMessage').innerText = '';
-        } else {
-            document.getElementById('taskProgress').innerText = `Tasks Completed`;
-            document.getElementById('targetSentenceDisplay').innerText = '-';
-            document.getElementById('startMicBtn').style.display = 'none';
-            document.getElementById('transcriptDisplay').innerText = '';
-            document.getElementById('scoreValue').innerText = '-';
-            document.getElementById('feedbackMessage').innerText = '';
-            document.getElementById('allTasksComplete').style.display = 'block';
+
+            // Update highest score display
+            document.getElementById('highestScoreDisplay').innerText = `Highest Score: ${highestScores[currentTaskIndex]}/10`;
+
+            // Update nav buttons
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+
+            prevBtn.disabled = (currentTaskIndex === 0);
+
+            if (currentTaskIndex === speakingTasks.length - 1) {
+                nextBtn.innerText = 'Finish 🏁';
+                nextBtn.style.backgroundColor = '#28a745';
+            } else {
+                nextBtn.innerText = 'Next ➡️';
+                nextBtn.style.backgroundColor = '#007bff';
+            }
         }
+    }
+
+    function showTaskReport() {
+        document.getElementById('taskProgress').innerText = `Tasks Completed`;
+        document.getElementById('activeTaskControls').style.display = 'none';
+        document.getElementById('taskSettings').style.display = 'none';
+        document.getElementById('allTasksComplete').style.display = 'block';
+
+        const passingScore = parseInt(document.getElementById('passingScoreSelect').value, 10);
+
+        let reportHtml = `<table class="report-table">
+            <thead>
+                <tr>
+                    <th>Task (Sentence)</th>
+                    <th>Highest Score</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>`;
+
+        for (let i = 0; i < speakingTasks.length; i++) {
+            const score = highestScores[i];
+            const passed = score >= passingScore;
+            const statusColor = passed ? '#28a745' : '#dc3545';
+            const statusText = passed ? 'Passed' : 'Failed';
+
+            reportHtml += `<tr>
+                <td>${escapeHtml(speakingTasks[i])}</td>
+                <td style="text-align: center; font-weight: bold; color: ${statusColor}">${score}/10</td>
+                <td style="color: ${statusColor}; font-weight: bold;">${statusText}</td>
+            </tr>`;
+        }
+
+        reportHtml += `</tbody></table>`;
+
+        // Add a retry button
+        reportHtml += `<button style="margin-top: 20px;" onclick="currentTaskIndex = 0; updateSpokenTaskUI(); document.getElementById('allTasksComplete').style.display = 'none'; document.getElementById('activeTaskControls').style.display = 'block'; document.getElementById('taskSettings').style.display = 'flex';">🔄 Try Again</button>`;
+
+        document.getElementById('finalReportArea').innerHTML = reportHtml;
     }
 
     function populateVoiceList() {
