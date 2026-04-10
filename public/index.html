@@ -101,6 +101,13 @@
             text-decoration: underline;
             color: #0056b3;
         }
+        .clickable-word {
+            cursor: pointer;
+            border-bottom: 1px dashed #007bff;
+        }
+        .clickable-word:hover {
+            background-color: #e9ecef;
+        }
     </style>
 </head>
 <body>
@@ -235,11 +242,15 @@
         data.forEach(item => {
             const tr = document.createElement('tr');
 
+            // Process sentence to make words clickable
+            const escapedSentence = escapeHtml(item.sentence);
+            const clickableSentence = escapedSentence.replace(/\b(\w+)\b/g, '<span class="clickable-word" onclick="playAudio(\'$1\')">$1</span>');
+
             tr.innerHTML = `
-                <td>${escapeHtml(item.word)}</td>
+                <td><span class="clickable-word" onclick="playAudio('${escapeHtml(item.word.replace(/'/g, "\\'"))}')">${escapeHtml(item.word)}</span></td>
                 <td>${escapeHtml(item.meaning)}</td>
                 <td>${escapeHtml(item.context)}</td>
-                <td>${escapeHtml(item.sentence)}</td>
+                <td>${clickableSentence}</td>
                 <td>${escapeHtml(item.translation)}</td>
                 <td>
                     <button class="audio-btn" onclick="playAudio('${escapeHtml(item.sentence.replace(/'/g, "\\'"))}')">🔊 Play</button>
