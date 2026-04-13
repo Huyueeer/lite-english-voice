@@ -702,8 +702,11 @@
             return;
         }
 
-        voices = speechSynthesis.getVoices();
         const voiceSelect = document.getElementById('voiceSelect');
+        // 保存当前选中的值
+        const selectedVoiceValue = voiceSelect.value;
+
+        voices = speechSynthesis.getVoices();
         voiceSelect.innerHTML = '';
 
         // Filter for English voices (or all if preferred)
@@ -723,16 +726,26 @@
             }
 
             option.value = i;
-            // set default selected index based on default property
-            if (voice.default) {
-                option.selected = true;
-            }
             voiceSelect.appendChild(option);
         });
 
-        // Ensure at least one is selected if none is default
-        if(enVoices.length > 0 && voiceSelect.selectedIndex === -1) {
-            voiceSelect.selectedIndex = 0;
+        // 恢复之前选中的值，如果没有则使用默认逻辑
+        if (selectedVoiceValue !== "" && voiceSelect.querySelector(`option[value="${selectedVoiceValue}"]`)) {
+             voiceSelect.value = selectedVoiceValue;
+        } else {
+            // set default selected index based on default property
+            let defaultSelected = false;
+            enVoices.forEach((voice, i) => {
+                if (voice.default) {
+                    voiceSelect.value = i;
+                    defaultSelected = true;
+                }
+            });
+
+            // Ensure at least one is selected if none is default
+            if(enVoices.length > 0 && !defaultSelected) {
+                voiceSelect.selectedIndex = 0;
+            }
         }
     }
 
