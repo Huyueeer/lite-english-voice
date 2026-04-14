@@ -123,6 +123,10 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
             border: 1px solid #e9ecef;
             display: none; /* Hidden until tasks are generated */
+            position: sticky;
+            top: 20px;
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
         }
         .task-header {
             font-size: 1.2em;
@@ -394,6 +398,10 @@
                 Loading task...
             </div>
 
+            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                <button class="audio-btn" style="flex: 1; padding: 10px;" onclick="playTaskSentence()">🔊 Play Sentence</button>
+            </div>
+
             <button id="startMicBtn" class="mic-btn" onclick="toggleListening()">
                 🎤 Start Speaking
             </button>
@@ -632,7 +640,12 @@
     function updateSpokenTaskUI() {
         if (currentTaskIndex < speakingTasks.length) {
             document.getElementById('taskProgress').innerText = `Task ${currentTaskIndex + 1} of ${speakingTasks.length}`;
-            document.getElementById('targetSentenceDisplay').innerText = speakingTasks[currentTaskIndex];
+
+            // Process task sentence to make words clickable for playback
+            const escapedSentence = escapeHtml(speakingTasks[currentTaskIndex]);
+            const clickableSentence = escapedSentence.replace(/\b(\w+)\b/g, '<span class="clickable-word" onclick="playAudio(\'$1\')">$1</span>');
+
+            document.getElementById('targetSentenceDisplay').innerHTML = clickableSentence;
             document.getElementById('transcriptDisplay').innerText = 'Your voice input will appear here...';
             document.getElementById('scoreValue').innerText = '--';
             document.getElementById('scoreValue').className = '';
@@ -862,6 +875,12 @@
              .replace(/>/g, "&gt;")
              .replace(/"/g, "&quot;")
              .replace(/'/g, "&#039;");
+    }
+
+    function playTaskSentence() {
+        if (currentTaskIndex < speakingTasks.length) {
+            playAudio(speakingTasks[currentTaskIndex]);
+        }
     }
 </script>
 
