@@ -89,7 +89,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 16px 32px;
+            padding: 12px 32px;
             background-color: var(--bg-surface);
             border-bottom: 1px solid var(--border-subtle);
             position: sticky;
@@ -100,7 +100,7 @@
 
         .app-header h1 {
             margin: 0;
-            font-size: 22px;
+            font-size: 20px;
             font-weight: 500;
         }
 
@@ -123,6 +123,41 @@
         .theme-btn:hover {
             background-color: var(--text-primary);
             color: var(--bg-base); /* Ensure the icon also gets the inverted color */
+        }
+
+        /* Main Navigation in Header */
+        .main-nav {
+            display: flex;
+            gap: 8px;
+        }
+
+        .main-nav-item {
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 14px;
+            padding: 8px 16px;
+            border-radius: var(--radius-btn);
+            cursor: pointer;
+            transition: all var(--transition-speed);
+        }
+
+        .main-nav-item:hover {
+            background-color: var(--bg-surface-hover);
+            color: var(--text-primary);
+        }
+
+        .main-nav-item.active {
+            color: var(--accent-primary);
+            background-color: var(--accent-bg);
+        }
+
+        /* Tab Content Areas */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
         }
 
         /* Layout */
@@ -599,12 +634,77 @@
             transform: translateY(-5px);
             box-shadow: 0 8px 16px rgba(11, 87, 208, 0.2);
         }
+
+        /* Associative Memory Styles */
+        .memory-word {
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.15s ease-in-out;
+            padding: 2px 4px;
+            margin: 0 -2px;
+        }
+        .memory-word:hover {
+            background-color: var(--bg-surface-hover);
+            color: var(--accent-primary);
+        }
+
+        /* Comfortable Reading Highlight */
+        .reading-active-word {
+            background-color: var(--accent-bg);
+            color: var(--text-primary); /* Keeps text color legible in both themes */
+            border-radius: 4px;
+            box-shadow: 0 2px 0 0 var(--accent-primary); /* Subtle bottom underline instead of heavy shadow */
+            transition: background-color 0.1s, box-shadow 0.1s;
+        }
+
+        /* Playlist / Paragraph selector */
+        .memory-playlist {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 24px;
+            max-height: 120px;
+            overflow-y: auto;
+            padding-right: 8px;
+        }
+        .playlist-item {
+            padding: 8px 16px;
+            background-color: var(--bg-base);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-btn);
+            font-size: 14px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .playlist-item:hover {
+            background-color: var(--bg-surface-hover);
+            color: var(--text-primary);
+        }
+        .playlist-item.active {
+            background-color: var(--accent-bg);
+            color: var(--accent-primary);
+            border-color: var(--accent-primary);
+            font-weight: 500;
+        }
     </style>
 </head>
 <body>
 
 <div class="app-header">
-    <h1>LiteEnglish Voice</h1>
+    <div style="display: flex; align-items: center; gap: 32px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <img src="/favicon.ico" alt="Logo" style="width: 28px; height: 28px; border-radius: 6px; object-fit: contain;">
+            <h1>LiteEnglish Voice</h1>
+        </div>
+        <div class="main-nav">
+            <div class="main-nav-item active" onclick="switchTab('parsing')">Read & Practice</div>
+            <div class="main-nav-item" onclick="switchTab('memory')">Associative Memory (New)</div>
+        </div>
+    </div>
     <div class="header-actions">
         <div class="github-links">
             <a href="https://github.com/Huyueeer" target="_blank" rel="noopener noreferrer">👨‍💻 My GitHub</a>
@@ -617,8 +717,9 @@
     </div>
 </div>
 
-<div class="main-layout">
-    <div class="left-column">
+<div id="parsingTab" class="tab-content active">
+    <div class="main-layout">
+        <div class="left-column">
         <div class="container">
             <div class="instructions">
                 <strong>Input Format Required:</strong>
@@ -721,6 +822,77 @@
         </div>
     </div>
 </div>
+</div> <!-- End parsingTab -->
+
+<div id="memoryTab" class="tab-content">
+    <div class="main-layout">
+        <div class="left-column" id="memoryLeftColumn">
+            <div class="container">
+                <h2>Text Input</h2>
+                <div class="instructions" style="margin-bottom: 16px;">
+                    <strong>Input Format:</strong>
+                    You can enter multiple paragraphs. Separate them with an Enter (new line) to create distinct reading tasks.
+                </div>
+
+                <label for="memoryInputText" style="margin-top: 16px;">Enter English text here</label>
+                <textarea id="memoryInputText" placeholder="Paste your English text here to generate associative memory reading practice..." style="height: 200px;"></textarea>
+                <button onclick="parseMemoryText()" style="width: 100%; font-size: 16px; padding: 16px 24px;">Parse Text</button>
+            </div>
+        </div>
+
+        <div class="right-column" id="memoryPlayerArea" style="display: none; padding: 32px; border: 2px solid var(--accent-primary); flex: 1; transition: all 0.3s;">
+            <div class="task-header" style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 16px; margin-bottom: 20px;">
+                <div style="display: flex; align-items: center; gap: 16px;">
+                    <span style="font-size: 20px; font-weight: 600; color: var(--accent-primary);">📖 Reading Practice</span>
+                    <button onclick="editMemoryText()" class="nav-btn" style="padding: 6px 16px; font-size: 14px; display: flex; align-items: center; gap: 6px; width: auto;">
+                        <span>✏️</span> Edit Text
+                    </button>
+                </div>
+            </div>
+
+            <!-- Unified Control Settings Bar -->
+            <div style="display: flex; flex-wrap: wrap; gap: 32px; align-items: center; background-color: var(--bg-base); padding: 16px 24px; border-radius: var(--radius-card); border: 1px solid var(--border-subtle); margin-bottom: 24px;">
+                <label style="margin: 0; display: flex; align-items: center; gap: 10px; font-size: 15px; color: var(--text-secondary); font-weight: 500;">
+                    🗣️ Voice:
+                    <select id="memoryVoiceSelect" style="width: 220px; padding: 8px 32px 8px 12px; margin: 0; background-position: right 12px center; background-size: 12px; font-size: 14px;">
+                        <option value="">Loading voices...</option>
+                    </select>
+                </label>
+
+                <label style="margin: 0; display: flex; align-items: center; gap: 10px; font-size: 15px; color: var(--text-secondary); font-weight: 500;">
+                    ⚡ Speed:
+                    <select id="playbackSpeed" style="width: auto; padding: 8px 32px 8px 12px; margin: 0; background-position: right 12px center; background-size: 12px; font-size: 14px;">
+                        <option value="1">1.0x (Normal)</option>
+                        <option value="0.75">0.75x (Slow)</option>
+                    </select>
+                </label>
+
+                <label style="margin: 0; display: flex; align-items: center; gap: 10px; font-size: 15px; color: var(--text-primary); cursor: pointer; font-weight: 500; user-select: none;">
+                    <input type="checkbox" id="loopPlayback" style="width: 18px; height: 18px; accent-color: var(--accent-primary); cursor: pointer;">
+                    🔁 Loop Playback
+                </label>
+            </div>
+
+            <!-- Playlist / Paragraph Selector -->
+            <div style="margin-bottom: 12px;">
+                <label style="font-size: 14px; color: var(--text-secondary); margin-bottom: 0;">Select a paragraph to practice:</label>
+            </div>
+            <div id="memoryPlaylist" class="memory-playlist">
+                <!-- Chips will be generated here -->
+            </div>
+
+            <div id="memoryReadingText" style="font-size: 20px; line-height: 1.8; color: var(--text-primary); margin-bottom: 32px; padding: 24px; background-color: var(--bg-base); border-radius: var(--radius-card); min-height: 150px; border: 1px solid var(--border-subtle);">
+                <!-- Parsed text will appear here -->
+            </div>
+
+            <div style="display: flex; gap: 16px;">
+                <button id="memoryPlayBtn" onclick="toggleMemoryPlayback()" style="flex: 1; font-size: 16px; padding: 16px 24px; display: flex; justify-content: center; gap: 8px;">
+                    <span>▶️</span> Start Reading
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- Rocket Back to Top Button -->
 <div id="backToTop" class="back-to-top" onclick="scrollToTop()" title="Back to top">
@@ -754,6 +926,25 @@
         }
     })();
     // --- END THEME LOGIC ---
+
+    // --- TAB SWITCHING LOGIC ---
+    function switchTab(tabId) {
+        // Update nav UI
+        document.querySelectorAll('.main-nav-item').forEach(tab => {
+            tab.classList.remove('active');
+        });
+
+        if(tabId === 'parsing') {
+            document.querySelector('.main-nav-item:nth-child(1)').classList.add('active');
+            document.getElementById('parsingTab').classList.add('active');
+            document.getElementById('memoryTab').classList.remove('active');
+        } else if (tabId === 'memory') {
+            document.querySelector('.main-nav-item:nth-child(2)').classList.add('active');
+            document.getElementById('memoryTab').classList.add('active');
+            document.getElementById('parsingTab').classList.remove('active');
+        }
+    }
+    // --- END TAB LOGIC ---
 
     let voices = [];
 
@@ -1039,17 +1230,22 @@
         }
 
         const voiceSelect = document.getElementById('voiceSelect');
+        const memoryVoiceSelect = document.getElementById('memoryVoiceSelect');
+
         // 保存当前选中的值
         const selectedVoiceValue = voiceSelect.value;
+        const memorySelectedVoiceValue = memoryVoiceSelect ? memoryVoiceSelect.value : "";
 
         voices = speechSynthesis.getVoices();
         voiceSelect.innerHTML = '';
+        if(memoryVoiceSelect) memoryVoiceSelect.innerHTML = '';
 
         // Filter for English voices (or all if preferred)
         const enVoices = voices.filter(voice => voice.lang.startsWith('en-'));
 
         if (enVoices.length === 0) {
             voiceSelect.innerHTML = '<option value="">No English voices found</option>';
+            if(memoryVoiceSelect) memoryVoiceSelect.innerHTML = '<option value="">No English voices found</option>';
             return;
         }
 
@@ -1063,6 +1259,11 @@
 
             option.value = i;
             voiceSelect.appendChild(option);
+
+            if(memoryVoiceSelect) {
+                const memoryOption = option.cloneNode(true);
+                memoryVoiceSelect.appendChild(memoryOption);
+            }
         });
 
         // 恢复之前选中的值，如果没有则使用默认逻辑
@@ -1081,6 +1282,15 @@
             // Ensure at least one is selected if none is default
             if(enVoices.length > 0 && !defaultSelected) {
                 voiceSelect.selectedIndex = 0;
+            }
+        }
+
+        // 同步给 Memory 的 Select
+        if(memoryVoiceSelect) {
+            if (memorySelectedVoiceValue !== "" && memoryVoiceSelect.querySelector(`option[value="${memorySelectedVoiceValue}"]`)) {
+                 memoryVoiceSelect.value = memorySelectedVoiceValue;
+            } else {
+                 memoryVoiceSelect.value = voiceSelect.value;
             }
         }
     }
@@ -1162,9 +1372,11 @@
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.lang = 'en-US';
 
-            // get selected voice
-            const voiceSelect = document.getElementById('voiceSelect');
-            if (voiceSelect.selectedOptions.length > 0) {
+            // Check which tab is active to use the right voice selector
+            const isMemoryActive = document.getElementById('memoryTab').classList.contains('active');
+            const voiceSelect = isMemoryActive ? document.getElementById('memoryVoiceSelect') : document.getElementById('voiceSelect');
+
+            if (voiceSelect && voiceSelect.selectedOptions.length > 0) {
                 const selectedVoiceIndex = parseInt(voiceSelect.value);
 
                 const allVoices = window.speechSynthesis.getVoices();
@@ -1208,7 +1420,271 @@
         }
     }
 
-    // --- BACK TO TOP LOGIC ---
+    // --- ASSOCIATIVE MEMORY LOGIC ---
+    let memoryTasks = [];
+    let currentMemoryTaskIndex = 0;
+    let memoryUtterance = null;
+    let isMemoryPlaying = false;
+    let memoryWords = [];
+    let memoryLoopTimeout = null;
+
+    function parseMemoryText() {
+        const text = document.getElementById('memoryInputText').value;
+        if (!text.trim()) {
+            alert('Please enter some text.');
+            return;
+        }
+
+        // Split text by new lines (\n), filter out empty lines, and store as tasks
+        memoryTasks = text.split(/\n+/).map(t => t.trim()).filter(t => t.length > 0);
+
+        if (memoryTasks.length === 0) {
+            alert('No valid text found.');
+            return;
+        }
+
+        currentMemoryTaskIndex = 0;
+
+        // Hide the input area and expand the player area
+        document.getElementById('memoryLeftColumn').style.display = 'none';
+        const playerArea = document.getElementById('memoryPlayerArea');
+        playerArea.style.display = 'block';
+        playerArea.style.flex = '1';
+        playerArea.style.maxWidth = '1000px';
+        playerArea.style.margin = '0 auto';
+
+        renderMemoryPlaylist();
+        renderCurrentMemoryTask();
+    }
+
+    function editMemoryText() {
+        resetMemoryPlayback();
+
+        // Show input area and reset player area
+        document.getElementById('memoryLeftColumn').style.display = 'block';
+        const playerArea = document.getElementById('memoryPlayerArea');
+        playerArea.style.display = 'none';
+        playerArea.style.flex = '1';
+        playerArea.style.maxWidth = 'none';
+        playerArea.style.margin = '0';
+    }
+
+    // Helper to get first N words for snippet
+    function getSnippet(text, numWords) {
+        const words = text.split(/\s+/).filter(w => w.length > 0);
+        if (words.length <= numWords) return text;
+        return words.slice(0, numWords).join(' ') + '...';
+    }
+
+    function renderMemoryPlaylist() {
+        const playlistContainer = document.getElementById('memoryPlaylist');
+        playlistContainer.innerHTML = '';
+
+        memoryTasks.forEach((task, idx) => {
+            const chip = document.createElement('div');
+            chip.className = `playlist-item ${idx === currentMemoryTaskIndex ? 'active' : ''}`;
+
+            // Icon to indicate it's a selectable track
+            const icon = document.createElement('span');
+            icon.innerText = idx === currentMemoryTaskIndex ? '🎧' : '📄';
+
+            // Text snippet
+            const snippetText = document.createElement('span');
+            snippetText.innerText = getSnippet(task, 4);
+
+            chip.appendChild(icon);
+            chip.appendChild(snippetText);
+
+            chip.onclick = () => {
+                if (currentMemoryTaskIndex !== idx) {
+                    currentMemoryTaskIndex = idx;
+                    renderMemoryPlaylist(); // Re-render to update active state and icons
+                    renderCurrentMemoryTask();
+                }
+            };
+
+            playlistContainer.appendChild(chip);
+        });
+    }
+
+    function renderCurrentMemoryTask() {
+        resetMemoryPlayback();
+
+        const readingArea = document.getElementById('memoryReadingText');
+        const currentText = memoryTasks[currentMemoryTaskIndex];
+
+        // Render Text
+        const parts = currentText.split(/([\s\r,.\!?;:"'()]+)/g);
+        readingArea.innerHTML = '';
+        memoryWords = [];
+
+        parts.forEach((part, idx) => {
+            if (!part) return;
+
+            const span = document.createElement('span');
+            span.innerText = part;
+
+            if (/[a-zA-Z0-9]/.test(part)) {
+                span.id = `memory-word-${memoryWords.length}`;
+                span.className = 'memory-word';
+
+                span.onclick = function() {
+                    if (!isMemoryPlaying) playAudio(part);
+                };
+
+                memoryWords.push({ element: span, text: part, index: idx });
+            }
+
+            readingArea.appendChild(span);
+        });
+    }
+
+    function resetMemoryPlayback() {
+        if (window.speechSynthesis) window.speechSynthesis.cancel();
+        if (memoryLoopTimeout) clearTimeout(memoryLoopTimeout);
+        isMemoryPlaying = false;
+
+        const btn = document.getElementById('memoryPlayBtn');
+        btn.innerHTML = '<span>▶️</span> Start Reading';
+        btn.style.backgroundColor = 'var(--accent-primary)';
+
+        // Remove all highlights
+        memoryWords.forEach(w => {
+            w.element.classList.remove('reading-active-word');
+        });
+    }
+
+    // Remove the old prev/next button functions as they are no longer needed
+    // function prevMemoryTask() ...
+    // function nextMemoryTask() ...
+
+    function resetMemoryPlayback() {
+        if (window.speechSynthesis) window.speechSynthesis.cancel();
+        if (memoryLoopTimeout) clearTimeout(memoryLoopTimeout);
+        isMemoryPlaying = false;
+
+        const btn = document.getElementById('memoryPlayBtn');
+        btn.innerHTML = '<span>▶️</span> Start Reading';
+        btn.style.backgroundColor = 'var(--accent-primary)';
+
+        // Remove all highlights
+        memoryWords.forEach(w => {
+            w.element.classList.remove('reading-active-word');
+        });
+    }
+
+    function toggleMemoryPlayback() {
+        if (isMemoryPlaying) {
+            resetMemoryPlayback();
+            return;
+        }
+
+        startMemoryReading();
+    }
+
+    function startMemoryReading() {
+        if (!('speechSynthesis' in window)) {
+            alert('Text-to-speech is not supported in your browser.');
+            return;
+        }
+
+        window.speechSynthesis.cancel();
+        if (memoryLoopTimeout) clearTimeout(memoryLoopTimeout);
+
+        const currentText = memoryTasks[currentMemoryTaskIndex];
+        memoryUtterance = new SpeechSynthesisUtterance(currentText);
+        memoryUtterance.lang = 'en-US';
+
+        // Set Voice
+        const memoryVoiceSelect = document.getElementById('memoryVoiceSelect');
+        if (memoryVoiceSelect && memoryVoiceSelect.selectedOptions.length > 0) {
+            const selectedVoiceIndex = parseInt(memoryVoiceSelect.value);
+            const enVoices = window.speechSynthesis.getVoices().filter(v => v.lang.startsWith('en-'));
+            if (enVoices[selectedVoiceIndex]) {
+                memoryUtterance.voice = enVoices[selectedVoiceIndex];
+            }
+        }
+
+        // Set Speed
+        const speed = parseFloat(document.getElementById('playbackSpeed').value);
+        memoryUtterance.rate = speed;
+
+        // UI Updates for playing state
+        isMemoryPlaying = true;
+        const btn = document.getElementById('memoryPlayBtn');
+        btn.innerHTML = '<span>⏹️</span> Stop Reading';
+        btn.style.backgroundColor = 'var(--error-text)';
+
+        // Highlighting Logic (Boundary Event)
+        // Web Speech API boundary events give us the charIndex of what's being spoken
+        memoryUtterance.onboundary = function(event) {
+            if (event.name !== 'word') return;
+
+            const charIndex = event.charIndex;
+            let currentLength = 0;
+            let currentWordIndex = -1;
+
+            const parts = currentText.split(/([\s\r,.\!?;:"'()]+)/g);
+
+            let wordCount = 0;
+            for (let i = 0; i < parts.length; i++) {
+                if (/[a-zA-Z0-9]/.test(parts[i])) {
+                    if (currentLength <= charIndex && charIndex < currentLength + parts[i].length) {
+                        currentWordIndex = wordCount;
+                        break;
+                    }
+                    wordCount++;
+                }
+                currentLength += parts[i].length;
+            }
+
+            // Highlight the found word
+            if (currentWordIndex !== -1 && memoryWords[currentWordIndex]) {
+                // Clear old
+                memoryWords.forEach(w => {
+                    w.element.classList.remove('reading-active-word');
+                });
+
+                // Set new
+                const activeEl = memoryWords[currentWordIndex].element;
+                activeEl.classList.add('reading-active-word');
+
+                // Auto scroll if needed
+                activeEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        };
+
+        memoryUtterance.onend = function() {
+            // Clear highlights
+            memoryWords.forEach(w => {
+                w.element.classList.remove('reading-active-word');
+            });
+
+            const isLoop = document.getElementById('loopPlayback').checked;
+
+            if (isLoop && isMemoryPlaying) {
+                // Change UI to show waiting state
+                btn.innerHTML = '<span>⏳</span> Waiting 3s... (Loop)';
+                btn.style.backgroundColor = 'var(--warning-text)';
+
+                memoryLoopTimeout = setTimeout(() => {
+                    if (isMemoryPlaying) { // Check again in case user stopped it
+                        startMemoryReading();
+                    }
+                }, 3000);
+            } else {
+                resetMemoryPlayback();
+            }
+        };
+
+        memoryUtterance.onerror = function(e) {
+            console.error('SpeechSynthesis error:', e);
+            resetMemoryPlayback();
+        };
+
+        window.speechSynthesis.speak(memoryUtterance);
+    }
+    // --- END ASSOCIATIVE MEMORY LOGIC ---
     const backToTopBtn = document.getElementById('backToTop');
 
     window.addEventListener('scroll', () => {
