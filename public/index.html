@@ -1,396 +1,682 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="/favicon.ico" type="image/x-icon">
     <title>LiteEnglish Voice</title>
     <style>
+        :root {
+            /* Typography */
+            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+
+            /* Light Theme (Google AI Docs Aesthetic) */
+            --bg-base: #f8f9fa;
+            --bg-surface: #ffffff;
+            --bg-surface-hover: #f1f3f4;
+
+            --text-primary: #1f1f1f;
+            --text-secondary: #444746;
+            --text-tertiary: #5f6368;
+
+            --border-subtle: #e3e3e3;
+            --border-strong: #c4c7c5;
+
+            --accent-primary: #0b57d0;
+            --accent-hover: #0842a0;
+            --accent-bg: #e8f0fe;
+
+            --success-text: #0d652d;
+            --success-bg: #e6f4ea;
+            --error-text: #b3261e;
+            --error-bg: #f9dedc;
+            --warning-text: #b06000;
+
+            --shadow-card: none;
+
+            /* UI Elements */
+            --radius-card: 16px;
+            --radius-btn: 24px;
+            --radius-input: 8px;
+
+            --transition-speed: 0.2s;
+        }
+
+        [data-theme="dark"] {
+            --bg-base: #131314;
+            --bg-surface: #1e1e20;
+            --bg-surface-hover: #2d2e30;
+
+            --text-primary: #e3e3e3;
+            --text-secondary: #c4c7c5;
+            --text-tertiary: #8e918f;
+
+            --border-subtle: #444746;
+            --border-strong: #747775;
+
+            --accent-primary: #a8c7fa;
+            --accent-hover: #d3e3fd;
+            --accent-bg: #004a77;
+
+            --success-text: #6dd58c;
+            --success-bg: #0f5223;
+            --error-text: #f2b8b5;
+            --error-bg: #8c1d18;
+            --warning-text: #fcc934;
+        }
+
         body {
-            font-family: Arial, sans-serif;
+            font-family: var(--font-sans);
             margin: 0;
-            padding: 20px;
-            background-color: #f4f4f9;
-        }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        h1 {
-            text-align: center;
-            color: #333;
-        }
-        textarea {
-            width: 100%;
-            height: 150px;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
+            padding: 0;
+            background-color: var(--bg-base);
+            color: var(--text-primary);
+            line-height: 1.6;
             font-size: 16px;
-            box-sizing: border-box;
-            resize: vertical;
-            margin-bottom: 20px;
+            transition: background-color var(--transition-speed), color var(--transition-speed);
         }
-        button {
-            display: block;
-            width: 100%;
-            padding: 10px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-size: 16px;
+
+        /* Typography Base */
+        h1, h2, h3, h4, h5, h6 {
+            color: var(--text-primary);
+            font-weight: 500;
+            margin-top: 0;
+            letter-spacing: -0.02em;
+        }
+
+        /* Header / App Bar */
+        .app-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 32px;
+            background-color: var(--bg-surface);
+            border-bottom: 1px solid var(--border-subtle);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            margin-bottom: 32px;
+        }
+
+        .app-header h1 {
+            margin: 0;
+            font-size: 22px;
+            font-weight: 500;
+        }
+
+        /* Theme Toggle */
+        .theme-btn {
+            background: transparent;
+            border: none; /* Remove harsh border */
+            color: var(--text-secondary); /* Softer default text */
+            padding: 8px 16px;
+            border-radius: var(--radius-btn);
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
             cursor: pointer;
+            transition: all var(--transition-speed);
         }
-        button:hover {
-            background-color: #0056b3;
+
+        .theme-btn:hover {
+            background-color: var(--text-primary);
+            color: var(--bg-base); /* Ensure the icon also gets the inverted color */
         }
+
+        /* Layout */
+        .main-layout {
+            display: flex;
+            gap: 32px;
+            align-items: flex-start;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 32px 48px;
+        }
+
+        .left-column {
+            flex: 2;
+            min-width: 0;
+        }
+
+        .right-column {
+            flex: 1;
+            background-color: var(--bg-surface);
+            padding: 24px;
+            border-radius: var(--radius-card);
+            border: 1px solid var(--border-subtle);
+            display: none;
+            position: sticky;
+            top: 100px;
+            max-height: calc(100vh - 120px);
+            overflow-y: auto;
+            transition: background-color var(--transition-speed), border-color var(--transition-speed);
+        }
+
+        .container {
+            background-color: var(--bg-surface);
+            padding: 32px;
+            border-radius: var(--radius-card);
+            border: 1px solid var(--border-subtle);
+            margin-bottom: 24px;
+            transition: background-color var(--transition-speed), border-color var(--transition-speed);
+        }
+
+        /* Inputs */
+        textarea, select {
+            width: 100%;
+            padding: 16px;
+            background-color: var(--bg-base);
+            border: 1px solid var(--border-strong);
+            border-radius: var(--radius-input);
+            font-family: var(--font-sans);
+            font-size: 16px;
+            color: var(--text-primary);
+            box-sizing: border-box;
+            transition: all 0.2s;
+        }
+
+        textarea {
+            height: 180px;
+            resize: vertical;
+            margin-bottom: 24px;
+            line-height: 1.5;
+        }
+
+        textarea::placeholder {
+            color: var(--text-tertiary);
+        }
+
+        textarea:focus, select:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: inset 0 0 0 1px var(--accent-primary);
+        }
+
+        select {
+            cursor: pointer;
+            margin-bottom: 24px;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%235f6368' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+            background-size: 16px;
+            padding-right: 48px;
+        }
+
+        [data-theme="dark"] select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%238e918f' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+        }
+
+        /* Forms & Labels */
+        label {
+            display: block;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            font-size: 15px;
+        }
+
+        /* Standard Buttons */
+        button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 24px;
+            background-color: var(--accent-primary);
+            color: #ffffff; /* Light mode button text */
+            border: none;
+            border-radius: var(--radius-btn);
+            font-size: 15px;
+            font-weight: 500;
+            font-family: var(--font-sans);
+            cursor: pointer;
+            transition: all var(--transition-speed);
+        }
+
+        [data-theme="dark"] button:not(.theme-btn, .audio-btn, .nav-btn, .mic-btn) {
+            color: #041e49; /* Dark mode primary button text */
+        }
+
+        button:hover:not(:disabled) {
+            background-color: var(--accent-hover);
+        }
+
+        button:disabled {
+            background-color: var(--border-subtle);
+            color: var(--text-tertiary);
+            cursor: not-allowed;
+        }
+
+        button[onclick="parseText()"] {
+            width: 100%;
+            font-size: 16px;
+            padding: 16px 24px;
+        }
+
+        /* Data Tables */
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
+            margin-top: 24px;
+            font-size: 15px;
         }
+
         th, td {
-            border: 1px solid #ddd;
-            padding: 12px;
+            padding: 16px;
             text-align: left;
+            border-bottom: 1px solid var(--border-subtle);
+            color: var(--text-secondary);
         }
+
         th {
-            background-color: #f2f2f2;
-            color: #333;
+            color: var(--text-primary);
+            font-weight: 500;
+            border-bottom: 2px solid var(--border-strong);
+            font-size: 14px;
         }
+
+        /* Secondary Actions */
         .audio-btn {
-            background-color: #28a745;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 4px;
-            cursor: pointer;
+            background-color: transparent;
+            color: var(--accent-primary);
+            border: 2px solid var(--accent-primary); /* Match mic-btn style */
+            padding: 10px 20px;
+            border-radius: var(--radius-btn);
             font-size: 14px;
-            width: auto;
-            display: inline-block;
+            font-weight: 500;
+            transition: all var(--transition-speed);
         }
-        .audio-btn:hover {
-            background-color: #218838;
+
+        [data-theme="dark"] .audio-btn {
+            color: var(--accent-primary);
+            border-color: var(--accent-primary);
         }
+
+        .audio-btn:hover:not(:disabled) {
+            background-color: var(--accent-primary);
+            color: var(--bg-surface);
+            border-color: var(--accent-primary);
+        }
+
+        /* Helper Blocks */
         .instructions {
-            background-color: #e9ecef;
-            padding: 10px;
-            border-radius: 4px;
-            margin-bottom: 20px;
-            font-size: 14px;
-            color: #555;
+            background-color: var(--bg-base);
+            padding: 20px;
+            border-radius: var(--radius-card);
+            border: 1px solid var(--border-subtle);
+            margin-bottom: 32px;
+            font-size: 15px;
+            color: var(--text-secondary);
         }
+
+        .instructions strong {
+             color: var(--text-primary);
+             display: block;
+             margin-bottom: 8px;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
         .github-links {
             display: flex;
-            justify-content: flex-end;
-            gap: 15px;
-            padding: 10px 20px;
-            margin-bottom: 10px;
+            align-items: center;
+            gap: 24px;
         }
+
         .github-links a {
-            color: #007bff;
+            color: var(--text-secondary);
             text-decoration: none;
             font-size: 14px;
-            font-weight: bold;
+            font-weight: 500;
         }
+
         .github-links a:hover {
+            color: var(--accent-primary);
             text-decoration: underline;
-            color: #0056b3;
         }
+
         .clickable-word {
             cursor: pointer;
-            border-bottom: 1px dashed #007bff;
+            border-bottom: 1px dashed var(--text-tertiary);
+            color: var(--text-primary);
         }
-        .main-layout {
-            display: flex;
-            gap: 20px;
-            align-items: flex-start;
+
+        .clickable-word:hover {
+             color: var(--accent-primary);
+             border-bottom-color: var(--accent-primary);
         }
-        .left-column {
-            flex: 2;
-            min-width: 0; /* Prevent flex item from overflowing */
-        }
-        .right-column {
-            flex: 1;
-            background: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            border: 1px solid #e9ecef;
-            display: none; /* Hidden until tasks are generated */
-            position: sticky;
-            top: 20px;
-            max-height: calc(100vh - 40px);
-            overflow-y: auto;
-        }
+
+        /* Right Column Task Specifics */
         .task-header {
-            font-size: 1.2em;
-            font-weight: bold;
-            margin-bottom: 15px;
-            color: #333;
-            border-bottom: 2px solid #007bff;
-            padding-bottom: 5px;
-        }
-        .target-sentence {
-            font-size: 1.5em;
-            margin-bottom: 20px;
-            color: #0056b3;
-            font-weight: bold;
-            line-height: 1.4;
-        }
-        .mic-btn {
-            background-color: #dc3545;
-            color: white;
-            padding: 15px 20px;
-            border: none;
-            border-radius: 50px;
             font-size: 18px;
+            font-weight: 500;
+            margin-bottom: 16px;
+            color: var(--text-primary);
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .target-sentence {
+            font-size: 24px;
+            margin-bottom: 16px;
+            color: var(--text-primary);
+            font-weight: 400;
+            line-height: 1.4;
+            letter-spacing: -0.01em;
+            min-height: 80px; /* Prevents layout jumping when sentence length changes */
+        }
+
+        /* Segmented Control for Difficulty */
+        .difficulty-setting {
+            margin-bottom: 16px;
+        }
+
+        .segmented-control {
+            display: flex;
+            background-color: var(--bg-base);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-input);
+            padding: 4px;
+            gap: 4px;
+        }
+
+        .difficulty-option {
+            flex: 1;
+            text-align: center;
+            padding: 6px 12px;
+            border-radius: 6px;
             cursor: pointer;
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            border: 1px solid transparent; /* Prevents jumping */
+        }
+
+        .difficulty-option:hover {
+            background-color: var(--bg-surface-hover);
+            color: var(--text-primary);
+        }
+
+        .difficulty-option.selected {
+            background-color: var(--bg-surface);
+            color: var(--accent-primary);
+            border-color: var(--border-subtle);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+
+        /* Clean Checkbox for Auto Next */
+        .auto-next-setting {
+            display: flex;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .auto-next-setting label {
+             margin: 0;
+             display: flex;
+             align-items: center;
+             gap: 12px;
+             font-weight: 400;
+             color: var(--text-secondary);
+             cursor: pointer;
+        }
+
+        .auto-next-setting input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--accent-primary);
+            cursor: pointer;
+        }
+
+        /* Mic Button */
+        .mic-btn {
+            background-color: transparent;
+            color: var(--error-text);
+            border: 2px solid var(--error-text); /* Thicker border for prominence */
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 500;
             width: 100%;
-            margin-bottom: 15px;
-            transition: background-color 0.3s;
+            margin-bottom: 16px;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
+            gap: 8px;
+            transition: all var(--transition-speed);
         }
+
         .mic-btn:hover {
-            background-color: #c82333;
+            background-color: var(--error-text);
+            color: var(--bg-surface);
+            border-color: var(--error-text);
         }
+
         .mic-btn.listening {
-            background-color: #ffc107;
-            color: #333;
-            animation: pulse 1.5s infinite;
+            background-color: var(--error-text);
+            color: var(--bg-surface); /* White text on red bg */
+            border-color: var(--error-text);
+            animation: none; /* Removed the distracting box-shadow pulse */
         }
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
+
+        /* Score Area Layout */
+        .score-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            margin: 16px 0;
         }
+
         .score-display {
-            font-size: 2em;
-            text-align: center;
-            margin: 20px 0;
-            font-weight: bold;
+            font-size: 36px;
+            font-weight: 400;
+            color: var(--text-primary);
+            letter-spacing: -0.03em;
+            margin: 0; /* Remove previous margins */
         }
-        .score-high { color: #28a745; }
-        .score-med { color: #fd7e14; }
-        .score-low { color: #dc3545; }
+
+        .score-high { color: var(--success-text); }
+        .score-med { color: var(--warning-text); }
+        .score-low { color: var(--error-text); }
+
+        .highest-score-display {
+            font-size: 14px;
+            color: var(--text-tertiary);
+            margin: 0; /* Remove previous bottom margin */
+            padding-left: 16px;
+            border-left: 1px solid var(--border-subtle);
+        }
 
         .transcript-box {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 4px;
-            margin-bottom: 15px;
-            min-height: 60px;
-            border: 1px solid #ddd;
-            font-style: italic;
-            color: #555;
+            background-color: var(--bg-base);
+            padding: 12px;
+            border-radius: var(--radius-input);
+            border: 1px solid var(--border-subtle);
+            margin-bottom: 16px;
+            min-height: 40px; /* Reduced from 60px */
+            font-size: 14px;
+            color: var(--text-secondary);
         }
+
         .feedback-msg {
             text-align: center;
-            font-weight: bold;
-            margin-top: 10px;
-            min-height: 24px;
+            font-weight: 500;
+            margin-top: 12px;
+            min-height: 20px;
+            font-size: 14px;
         }
-        .task-complete {
-            text-align: center;
-            color: #28a745;
-            font-size: 1.5em;
-            font-weight: bold;
-            margin-top: 20px;
-            display: none;
-        }
-        .task-settings {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 20px;
-            background: #f8f9fa;
-            padding: 10px;
-            border-radius: 4px;
-            border: 1px solid #dee2e6;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-        .task-settings label {
-            font-weight: bold;
-            color: #495057;
-            font-size: 0.9em;
-        }
-        .task-settings input[type="checkbox"] {
-            margin-left: 5px;
-        }
-        .difficulty-setting {
-            width: 100%;
-        }
-        .difficulty-container {
-            display: flex;
-            gap: 15px;
-            margin-top: 10px;
-        }
-        .difficulty-option {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            cursor: pointer;
-            border: 3px solid transparent;
-            border-radius: 8px;
-            padding: 5px;
-            transition: all 0.2s ease-in-out;
-            width: 80px;
-        }
-        .difficulty-option img {
-            width: 100%;
-            height: 80px;
-            object-fit: cover;
-            border-radius: 4px;
-            margin-bottom: 5px;
-        }
-        .difficulty-option span {
-            font-size: 12px;
-            text-align: center;
-            color: #555;
-            line-height: 1.2;
-        }
-        .difficulty-option:hover {
-            transform: scale(1.05);
-            background-color: #f1f3f5;
-        }
-        .difficulty-option.selected {
-            border-color: #007bff;
-            background-color: #e9ecef;
-            box-shadow: 0 0 8px rgba(0, 123, 255, 0.3);
-        }
-        .difficulty-option.selected span {
-            font-weight: bold;
-            color: #007bff;
-        }
-        .auto-next-setting {
-            width: 100%;
-            display: flex;
-            justify-content: flex-end;
-        }
-        .highest-score-display {
-            font-size: 1em;
-            color: #6c757d;
-            text-align: center;
-            margin-bottom: 15px;
-        }
+
         .nav-buttons {
             display: flex;
-            justify-content: space-between;
-            gap: 10px;
-            margin-top: 15px;
+            gap: 12px;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border-subtle);
         }
+
         .nav-btn {
-            background-color: #6c757d;
-            color: white;
-            padding: 10px 15px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
+            background-color: transparent;
+            color: var(--text-primary);
+            border: 1px solid var(--border-strong);
             flex: 1;
-            font-size: 16px;
         }
-        .nav-btn:hover {
-            background-color: #5a6268;
+
+        .nav-btn:hover:not(:disabled) {
+            background-color: var(--bg-surface-hover);
         }
-        .nav-btn:disabled {
-            background-color: #ced4da;
-            cursor: not-allowed;
-        }
+
         .nav-btn-next {
-            background-color: #007bff;
+            background-color: var(--accent-primary);
+            border: none;
         }
-        .nav-btn-next:hover {
-            background-color: #0056b3;
+
+        [data-theme="light"] .nav-btn-next {
+             color: #ffffff;
         }
+
+        .nav-btn-next:hover:not(:disabled) {
+            background-color: var(--accent-hover);
+        }
+
+        .task-complete {
+            text-align: center;
+            color: var(--success-text);
+            font-size: 24px;
+            font-weight: 500;
+            margin-top: 40px;
+            display: none;
+        }
+
         .report-table {
-            width: 100%;
-            margin-top: 20px;
-            font-size: 0.9em;
+            background-color: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-input);
+            overflow: hidden;
+            margin-top: 24px;
         }
-        .report-table th, .report-table td {
-            padding: 8px;
+        /* Back to Top Rocket */
+        .back-to-top {
+            position: fixed;
+            bottom: 40px;
+            right: 40px;
+            width: 48px;
+            height: 48px;
+            background-color: var(--bg-surface);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-subtle);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(20px);
+        }
+
+        .back-to-top.visible {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .back-to-top:hover {
+            background-color: var(--accent-primary);
+            color: #ffffff;
+            border-color: var(--accent-primary);
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(11, 87, 208, 0.2);
         }
     </style>
 </head>
 <body>
 
-<div class="github-links">
-    <a href="https://github.com/Huyueeer" target="_blank" rel="noopener noreferrer">👨‍💻 My GitHub</a>
-    <a href="https://github.com/Huyueeer/lite-english-voice" target="_blank" rel="noopener noreferrer">⭐ Source Code</a>
+<div class="app-header">
+    <h1>LiteEnglish Voice</h1>
+    <div class="header-actions">
+        <div class="github-links">
+            <a href="https://github.com/Huyueeer" target="_blank" rel="noopener noreferrer">👨‍💻 My GitHub</a>
+            <a href="https://github.com/Huyueeer/lite-english-voice" target="_blank" rel="noopener noreferrer">⭐ Source Code</a>
+        </div>
+        <button id="themeToggleBtn" class="theme-btn" onclick="toggleTheme()">
+            <span class="light-icon">☀️ Light Mode</span>
+            <span class="dark-icon" style="display:none;">🌙 Dark Mode</span>
+        </button>
+    </div>
 </div>
 
 <div class="main-layout">
-    <div class="left-column container">
-        <h1>LiteEnglish Voice</h1>
-        <div class="instructions">
-            <strong>Input Format:</strong><br>
-            word，meaning，context，sentence，translation<br>
-            <em>Example: mode，n. 模式/方法，切换状态，I need to switch to silent mode.，我需要切换到静音模式。</em>
-        </div>
+    <div class="left-column">
+        <div class="container">
+            <div class="instructions">
+                <strong>Input Format Required:</strong>
+                word，meaning，context，sentence，translation<br>
+                <span style="display:inline-block; margin-top:8px; font-family:monospace; font-size:14px; background:var(--bg-surface); padding:4px 8px; border-radius:4px; border:1px solid var(--border-subtle);">Example: mode，n. 模式/方法，切换状态，I need to switch to silent mode.，我需要切换到静音模式。</span>
+            </div>
 
-        <div style="margin-bottom: 20px;">
-            <label for="voiceSelect"><strong>Select Voice:</strong></label>
-            <select id="voiceSelect" style="padding: 5px; border-radius: 4px;">
+            <label for="voiceSelect">Voice Selection</label>
+            <select id="voiceSelect">
                 <option value="">Loading voices...</option>
             </select>
-        </div>
 
-        <textarea id="inputText" placeholder="Paste your text here..."></textarea>
-        <button onclick="parseText()">Parse Text</button>
+            <label for="inputText">Content to Parse</label>
+            <textarea id="inputText" placeholder="Paste your comma-separated text here..."></textarea>
 
-        <div id="resultsArea" style="display: none;">
-            <table>
-                <thead>
-                    <tr>
-                        <th>单词 (Word)</th>
-                        <th>含义 (Meaning)</th>
-                        <th>场景 (Context)</th>
-                        <th>例句 (Sentence)</th>
-                        <th>例句翻译 (Translation)</th>
-                        <th>语音 (Audio)</th>
-                    </tr>
-                </thead>
-                <tbody id="resultsTableBody">
-                </tbody>
-            </table>
+            <button onclick="parseText()">Parse Content</button>
+
+            <div id="resultsArea" style="display: none;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Word</th>
+                            <th>Meaning</th>
+                            <th>Context</th>
+                            <th>Sentence</th>
+                            <th>Translation</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resultsTableBody">
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
-    <div class="right-column container" id="spokenTaskArea">
+    <div class="right-column" id="spokenTaskArea">
         <div class="task-header" id="taskProgress">Task 1 of 5</div>
 
-        <div class="task-settings" id="taskSettings">
-            <div class="difficulty-setting">
-                <label>难度 (Difficulty):</label>
-                <div class="difficulty-container">
-                    <div class="difficulty-option" data-score="4" onclick="selectDifficulty(this)">
-                        <img src="/images/3.jpg" alt="4分">
-                        <span>4分</span>
-                    </div>
-                    <div class="difficulty-option selected" data-score="7" onclick="selectDifficulty(this)">
-                        <img src="/images/7.jpg" alt="7分">
-                        <span>7分</span>
-                    </div>
-                    <div class="difficulty-option" data-score="10" onclick="selectDifficulty(this)">
-                        <img src="/images/10.jpg" alt="10分">
-                        <span>10分</span>
-                    </div>
+        <div class="difficulty-setting">
+            <label>Target Difficulty Score</label>
+            <div class="segmented-control">
+                <div class="difficulty-option selected" data-score="4" onclick="selectDifficulty(this)">
+                    Easy (4/10)
+                </div>
+                <div class="difficulty-option" data-score="7" onclick="selectDifficulty(this)">
+                    Medium (7/10)
+                </div>
+                <div class="difficulty-option" data-score="10" onclick="selectDifficulty(this)">
+                    Hard (10/10)
                 </div>
             </div>
-            <div class="auto-next-setting">
-                <label for="autoNextToggle" style="display: flex; align-items: center; gap: 5px;">
-                    <input type="checkbox" id="autoNextToggle" checked> 自动下一条
-                </label>
-            </div>
+        </div>
+
+        <div class="auto-next-setting">
+            <label for="autoNextToggle">
+                <input type="checkbox" id="autoNextToggle" checked> Auto-advance to next task on success
+            </label>
         </div>
 
         <div id="activeTaskControls">
@@ -398,46 +684,77 @@
                 Loading task...
             </div>
 
-            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                <button class="audio-btn" style="flex: 1; padding: 10px;" onclick="playTaskSentence()">🔊 Play Sentence</button>
+            <div style="display: flex; margin-bottom: 24px;">
+                <button class="audio-btn" onclick="playTaskSentence()">🔊 Play Target Sentence</button>
             </div>
 
             <button id="startMicBtn" class="mic-btn" onclick="toggleListening()">
                 🎤 Start Speaking
             </button>
 
+            <label>Live Transcript</label>
             <div class="transcript-box" id="transcriptDisplay">
                 Your voice input will appear here...
             </div>
 
-            <div class="score-display" id="scoreDisplay">
-                Score: <span id="scoreValue">--</span>/10
-            </div>
+            <div class="score-container">
+                <div class="score-display" id="scoreDisplay">
+                    <span id="scoreValue">--</span><span style="font-size: 24px; color: var(--text-tertiary);">/10</span>
+                </div>
 
-            <div class="highest-score-display" id="highestScoreDisplay">
-                Highest Score: --
+                <div class="highest-score-display" id="highestScoreDisplay">
+                    Highest Score Achieved: --
+                </div>
             </div>
 
             <div class="feedback-msg" id="feedbackMessage"></div>
 
             <div class="nav-buttons">
-                <button class="nav-btn" id="prevBtn" onclick="prevTask()">⬅️ Previous</button>
-                <button class="nav-btn nav-btn-next" id="nextBtn" onclick="nextTask()">Next ➡️</button>
+                <button class="nav-btn" id="prevBtn" onclick="prevTask()">Previous</button>
+                <button class="nav-btn nav-btn-next" id="nextBtn" onclick="nextTask()">Next</button>
             </div>
         </div>
 
         <div class="task-complete" id="allTasksComplete">
-            🎉 All spoken tasks completed! 🎉
+            All spoken tasks completed.
             <div id="finalReportArea"></div>
         </div>
-
-        <button onclick="window.scrollTo({top: 0, behavior: 'smooth'})" style="margin-top: 20px; background-color: #6c757d; padding: 10px;">
-            ⬆️ Back to Top
-        </button>
     </div>
 </div>
 
+<!-- Rocket Back to Top Button -->
+<div id="backToTop" class="back-to-top" onclick="scrollToTop()" title="Back to top">
+    🚀
+</div>
+
 <script>
+    // --- THEME TOGGLE LOGIC ---
+    function toggleTheme() {
+        const htmlEl = document.documentElement;
+        const isDark = htmlEl.getAttribute('data-theme') === 'dark';
+        const newTheme = isDark ? 'light' : 'dark';
+
+        htmlEl.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+
+        document.querySelector('.light-icon').style.display = newTheme === 'dark' ? 'none' : 'inline';
+        document.querySelector('.dark-icon').style.display = newTheme === 'dark' ? 'inline' : 'none';
+    }
+
+    (function initTheme() {
+        const savedTheme = localStorage.getItem('theme');
+        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+        if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            document.addEventListener("DOMContentLoaded", () => {
+                document.querySelector('.light-icon').style.display = 'none';
+                document.querySelector('.dark-icon').style.display = 'inline';
+            });
+        }
+    })();
+    // --- END THEME LOGIC ---
+
     let voices = [];
 
     // Spoken Task State
@@ -577,7 +894,7 @@
         else if (score >= 5) scoreDisplay.classList.add('score-med');
         else scoreDisplay.classList.add('score-low');
 
-        document.getElementById('highestScoreDisplay').innerText = `Highest Score: ${highestScores[currentTaskIndex]}/10`;
+        document.getElementById('highestScoreDisplay').innerText = `Highest Score Achieved: ${highestScores[currentTaskIndex]}/10`;
 
         const feedbackMsg = document.getElementById('feedbackMessage');
 
@@ -587,7 +904,7 @@
         const isAutoNext = document.getElementById('autoNextToggle').checked;
 
         if (score >= passingScore) {
-            feedbackMsg.style.color = '#28a745';
+            feedbackMsg.style.color = 'var(--success-text)';
 
             if (isAutoNext) {
                 feedbackMsg.innerText = 'Good job! Auto-advancing...';
@@ -603,7 +920,7 @@
             }
         } else {
             feedbackMsg.innerText = 'Keep trying!';
-            feedbackMsg.style.color = '#dc3545';
+            feedbackMsg.style.color = 'var(--error-text)';
         }
     }
 
@@ -634,7 +951,8 @@
         document.getElementById('spokenTaskArea').style.display = 'block';
         document.getElementById('allTasksComplete').style.display = 'none';
         document.getElementById('activeTaskControls').style.display = 'block';
-        document.getElementById('taskSettings').style.display = 'flex';
+        document.querySelector('.difficulty-setting').style.display = 'block';
+        document.querySelector('.auto-next-setting').style.display = 'flex';
         document.getElementById('finalReportArea').innerHTML = '';
 
         updateSpokenTaskUI();
@@ -656,7 +974,7 @@
             document.getElementById('feedbackMessage').innerText = '';
 
             // Update highest score display
-            document.getElementById('highestScoreDisplay').innerText = `Highest Score: ${highestScores[currentTaskIndex]}/10`;
+            document.getElementById('highestScoreDisplay').innerText = `Highest Score Achieved: ${highestScores[currentTaskIndex]}/10`;
 
             // Update nav buttons
             const prevBtn = document.getElementById('prevBtn');
@@ -666,10 +984,10 @@
 
             if (currentTaskIndex === speakingTasks.length - 1) {
                 nextBtn.innerText = 'Finish 🏁';
-                nextBtn.style.backgroundColor = '#28a745';
+                nextBtn.style.backgroundColor = 'var(--success-text)';
             } else {
-                nextBtn.innerText = 'Next ➡️';
-                nextBtn.style.backgroundColor = '#007bff';
+                nextBtn.innerText = 'Next';
+                nextBtn.style.backgroundColor = 'var(--accent-primary)';
             }
         }
     }
@@ -677,7 +995,8 @@
     function showTaskReport() {
         document.getElementById('taskProgress').innerText = `Tasks Completed`;
         document.getElementById('activeTaskControls').style.display = 'none';
-        document.getElementById('taskSettings').style.display = 'none';
+        document.querySelector('.difficulty-setting').style.display = 'none';
+        document.querySelector('.auto-next-setting').style.display = 'none';
         document.getElementById('allTasksComplete').style.display = 'block';
 
         const selectedOption = document.querySelector('.difficulty-option.selected');
@@ -696,20 +1015,20 @@
         for (let i = 0; i < speakingTasks.length; i++) {
             const score = highestScores[i];
             const passed = score >= passingScore;
-            const statusColor = passed ? '#28a745' : '#dc3545';
+            const statusColor = passed ? 'var(--success-text)' : 'var(--error-text)';
             const statusText = passed ? 'Passed' : 'Failed';
 
             reportHtml += `<tr>
                 <td>${escapeHtml(speakingTasks[i])}</td>
-                <td style="text-align: center; font-weight: bold; color: ${statusColor}">${score}/10</td>
-                <td style="color: ${statusColor}; font-weight: bold;">${statusText}</td>
+                <td style="text-align: center; font-weight: 500; color: ${statusColor}">${score}/10</td>
+                <td style="color: ${statusColor}; font-weight: 500;">${statusText}</td>
             </tr>`;
         }
 
         reportHtml += `</tbody></table>`;
 
         // Add a retry button
-        reportHtml += `<button style="margin-top: 20px;" onclick="currentTaskIndex = 0; updateSpokenTaskUI(); document.getElementById('allTasksComplete').style.display = 'none'; document.getElementById('activeTaskControls').style.display = 'block'; document.getElementById('taskSettings').style.display = 'flex';">🔄 Try Again</button>`;
+        reportHtml += `<button style="margin-top: 24px;" onclick="currentTaskIndex = 0; updateSpokenTaskUI(); document.getElementById('allTasksComplete').style.display = 'none'; document.getElementById('activeTaskControls').style.display = 'block'; document.querySelector('.difficulty-setting').style.display = 'block'; document.querySelector('.auto-next-setting').style.display = 'flex';">🔄 Try Again</button>`;
 
         document.getElementById('finalReportArea').innerHTML = reportHtml;
     }
@@ -819,13 +1138,13 @@
             const clickableSentence = escapedSentence.replace(/\b(\w+)\b/g, '<span class="clickable-word" onclick="playAudio(\'$1\')">$1</span>');
 
             tr.innerHTML = `
-                <td><span class="clickable-word" onclick="playAudio('${escapeHtml(item.word.replace(/'/g, "\\'"))}')">${escapeHtml(item.word)}</span></td>
+                <td><span class="clickable-word" style="font-weight: 500;" onclick="playAudio('${escapeHtml(item.word.replace(/'/g, "\\'"))}')">${escapeHtml(item.word)}</span></td>
                 <td>${escapeHtml(item.meaning)}</td>
                 <td>${escapeHtml(item.context)}</td>
                 <td>${clickableSentence}</td>
                 <td>${escapeHtml(item.translation)}</td>
                 <td>
-                    <button class="audio-btn" onclick="playAudio('${escapeHtml(item.sentence.replace(/'/g, "\\'"))}')">🔊 Play</button>
+                    <button class="audio-btn" onclick="playAudio('${escapeHtml(item.sentence.replace(/'/g, "\\'"))}')">Play</button>
                 </td>
             `;
 
@@ -845,21 +1164,23 @@
 
             // get selected voice
             const voiceSelect = document.getElementById('voiceSelect');
-            const selectedOption = voiceSelect.selectedOptions[0].getAttribute('data-name');
-            const selectedVoiceIndex = parseInt(voiceSelect.value);
+            if (voiceSelect.selectedOptions.length > 0) {
+                const selectedVoiceIndex = parseInt(voiceSelect.value);
 
-            const allVoices = window.speechSynthesis.getVoices();
-            const enVoices = allVoices.filter(voice => voice.lang.startsWith('en-'));
-            const selectedVoice = enVoices[selectedVoiceIndex];
+                const allVoices = window.speechSynthesis.getVoices();
+                const enVoices = allVoices.filter(voice => voice.lang.startsWith('en-'));
+                const selectedVoice = enVoices[selectedVoiceIndex];
 
-            if (selectedVoice) {
-                utterance.voice = selectedVoice;
-            } else {
-                // Optional fallback: try to find an English voice
-                const enVoice = allVoices.find(voice => voice.lang.startsWith('en-'));
-                if (enVoice) {
-                    utterance.voice = enVoice;
+                if (selectedVoice) {
+                    utterance.voice = selectedVoice;
                 }
+            } else {
+                // Fallback
+                 const allVoices = window.speechSynthesis.getVoices();
+                 const enVoice = allVoices.find(voice => voice.lang.startsWith('en-'));
+                 if (enVoice) {
+                     utterance.voice = enVoice;
+                 }
             }
 
             window.speechSynthesis.speak(utterance);
@@ -885,6 +1206,24 @@
         if (currentTaskIndex < speakingTasks.length) {
             playAudio(speakingTasks[currentTaskIndex]);
         }
+    }
+
+    // --- BACK TO TOP LOGIC ---
+    const backToTopBtn = document.getElementById('backToTop');
+
+    window.addEventListener('scroll', () => {
+        if (window.scrollY > 300) {
+            backToTopBtn.classList.add('visible');
+        } else {
+            backToTopBtn.classList.remove('visible');
+        }
+    });
+
+    function scrollToTop() {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
     }
 </script>
 
